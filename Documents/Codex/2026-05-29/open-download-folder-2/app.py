@@ -205,8 +205,10 @@ def find_price(plan_id):
 
 
 def add_computer(name, ip_address=""):
-    cleaned = name.strip() or f"PC {len(computer_rows()) + 1}"
     with db() as conn:
+        # Optimized: Just count the computers instead of fetching all session data
+        count = conn.execute(f"SELECT COUNT(*) as total FROM computers").fetchone()["total"]
+        cleaned = name.strip() or f"PC {count + 1}"
         conn.execute(
             f"INSERT INTO computers (name, ip_address, message, token, created_at) VALUES ({PL}, {PL}, {PL}, {PL}, {PL})",
             (cleaned, ip_address.strip(), "", secrets.token_urlsafe(16), now_ts()),
@@ -373,6 +375,7 @@ def admin_page():
     <form data-settings-form class="settings-grid">
       <input name="name" placeholder="PC name">
       <input name="ip_address" placeholder="IP address">
+      <input name="message" placeholder="Message to customer">
       <button type="submit">Save</button>
     </form>
     <form data-start-form class="control-grid">
