@@ -1,0 +1,39 @@
+QOOHI CUSTOMER PC SETUP
+
+1. Copy these files to the customer PC:
+   - customer_agent.py
+   - start_customer_agent.bat
+
+2. Install Python 3 on the customer PC if it is not already installed.
+   Download it from:
+   https://www.python.org/downloads/windows/
+
+   Important: during install, tick:
+   Add python.exe to PATH
+
+3. In QOOHI admin on the server PC, check the PC number.
+   Example:
+   PC 1 uses number 1
+   PC 2 uses number 2
+
+4. On the customer PC, double-click:
+   start_customer_agent.bat
+
+5. Type the PC number, then press Enter.
+
+6. When time is active, the customer PC shows a small timer bar at the top.
+   When time ends, is stopped, or the server is unreachable, it locks full screen.
+
+SERVER PC ADDRESS:
+http://192.168.0.114:8080
+
+Manual command examples:
+
+For PC 1 (local LAN):
+python customer_agent.py http://192.168.0.114:8080 1
+
+For PC 1 (Render cloud):
+python customer_agent.py https://your-app.onrender.com 1 YOUR_TOKEN
+
+Tip: For Render deployment, get the token from the admin dashboard
+("Open customer screen" URL contains ?token=YOUR_TOKEN).
