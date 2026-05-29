@@ -2,7 +2,7 @@ import json
 import sys
 import tkinter as tk
 from urllib.error import URLError
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 
 SERVER_URL = sys.argv[1].rstrip("/") if len(sys.argv) > 1 else "http://127.0.0.1:8080"
@@ -110,11 +110,18 @@ class CustomerAgent:
         url = f"{SERVER_URL}/api/computers/{COMPUTER_ID}"
         if COMPUTER_TOKEN:
             url += f"?token={COMPUTER_TOKEN}"
-        with urlopen(url, timeout=4) as response:
+        
+        # Cloud services like Render prefer a User-Agent; increased timeout for cold starts
+        req = Request(url, headers={'User-Agent': 'QOOHI-Agent/1.0'})
+        with urlopen(req, timeout=12) as response:
             return json.loads(response.read().decode("utf-8"))
 
     def show_locked(self, data=None, offline=False, error=""):
-        message = "Cannot reach server. Ask the operator for help." if offline else "Time is finished. Ask the operator to add time."
+        if offline:
+            message = "Connecting to cloud... (Render may take 30s to wake up)"
+        else:
+            message = (data or {}).get("message") or "Time is finished. Ask the operator to add time."
+            
         self.set_locked_layout()
         self.name.config(text=(data or {}).get("name", "Customer PC"))
         self.state.config(text="Locked")
@@ -132,7 +139,8 @@ class CustomerAgent:
         self.name.config(text=data.get("name", "Customer PC"))
         self.state.config(text="Session active")
         self.time_left.config(text=format_time(data.get("remaining_seconds", 0)))
-        self.message.config(text="Timer is running. This window stays on top.")
+        msg = data.get("message") or "Timer is running. This window stays on top."
+        self.message.config(text=msg)
         self.connection.config(text=f"Server: {SERVER_URL}   PC ID: {COMPUTER_ID}")
 
     def tick(self):

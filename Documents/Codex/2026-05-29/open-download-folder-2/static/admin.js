@@ -82,6 +82,7 @@ function updateComputerCard(node, computer, firstRender = false) {
   if (firstRender || !settingsForm.matches(":focus-within")) {
     settingsForm.elements.name.value = computer.name;
     settingsForm.elements.ip_address.value = computer.ip_address || "";
+    settingsForm.elements.message.value = computer.message || "";
   }
 
   const link = node.querySelector("[data-link]");
@@ -120,6 +121,30 @@ async function loadComputers() {
   activeCount.textContent = active.length;
   lockedCount.textContent = data.computers.length - active.length;
   cashTotal.textContent = active.reduce((sum, computer) => sum + (computer.session?.amount_ksh || 0), 0);
+  loadHistory();
+}
+
+async function loadHistory() {
+  const response = await fetch("/api/history");
+  if (!response.ok) return;
+  const data = await response.json();
+  const tbody = document.querySelector("#history-table-body");
+  if (!tbody) return;
+  
+  tbody.innerHTML = data.history.map(session => {
+    const date = new Date(session.stopped_at * 1000).toLocaleTimeString([], {
+      hour: '2-digit', 
+      minute: '2-digit'
+    });
+    return `
+      <tr>
+        <td>${date}</td>
+        <td>${session.pc_name}</td>
+        <td>${session.minutes} min</td>
+        <td><strong>${session.amount_ksh} KSh</strong></td>
+      </tr>
+    `;
+  }).join('');
 }
 
 document.querySelector("[data-add-computer]").addEventListener("submit", async (event) => {

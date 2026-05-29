@@ -213,11 +213,24 @@ def add_computer(name, ip_address=""):
         )
 
 
-def update_computer(computer_id, name, ip_address):
+def get_session_history():
+    with db() as conn:
+        rows = conn.execute(f"""
+            SELECT s.*, c.name as pc_name 
+            FROM sessions s 
+            JOIN computers c ON s.computer_id = c.id 
+            WHERE s.stopped_at IS NOT NULL 
+            ORDER BY s.stopped_at DESC 
+            LIMIT 50
+        """).fetchall()
+        return [dict(r) for r in rows]
+
+
+def update_computer(computer_id, name, ip_address, message=""):
     with db() as conn:
         conn.execute(
-            f"UPDATE computers SET name = {PL}, ip_address = {PL} WHERE id = {PL}",
-            (name.strip() or f"PC {computer_id}", ip_address.strip(), computer_id),
+            f"UPDATE computers SET name = {PL}, ip_address = {PL}, message = {PL} WHERE id = {PL}",
+            (name.strip() or f"PC {computer_id}", ip_address.strip(), message.strip(), computer_id),
         )
 
 
@@ -328,6 +341,23 @@ def admin_page():
     <p>Add the two customer computers by name and IP address. This admin PC stays as the controller.</p>
   </section>
   <section id="computer-grid" class="computer-grid" aria-live="polite"></section>
+
+  <section class="history-section">
+    <h2 class="section-title">Recent Session History</h2>
+    <div class="table-wrap">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>PC Name</th>
+            <th>Duration</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody id="history-table-body"></tbody>
+      </table>
+    </div>
+  </section>
 </main>
 
 <template id="computer-card-template">
@@ -454,6 +484,11 @@ class CafeHandler(BaseHTTPRequestHandler):
                 return
             self.send_json({"computers": computer_rows(), "plans": PRICE_PLANS})
             return
+        if path == "/api/history":
+            if not self.require_admin():
+                return
+            self.send_json({"history": get_session_history()})
+            return
         match = re.fullmatch(r"/api/computers/(\d+)", path)
         if match:
             computer_id = int(match.group(1))
@@ -462,7 +497,7 @@ class CafeHandler(BaseHTTPRequestHandler):
             if computer is None:
                 self.send_json({"error": "not found"}, 404)
                 return
-            if token and token != computer.get("token", ""):
+            if token != computer.get("token", ""):
                 self.send_json({"error": "invalid token"}, 403)
                 return
             self.send_json(computer)
@@ -503,6 +538,7 @@ class CafeHandler(BaseHTTPRequestHandler):
                 computer_id,
                 form.get("name", ""),
                 form.get("ip_address", ""),
+                form.get("message", ""),
             )
         elif action == "start":
             start_session(computer_id, form.get("plan_id", "10min"))

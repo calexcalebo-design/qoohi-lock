@@ -180,6 +180,24 @@ h1 {
   font-weight: 700;
 }
 
+/* History Table Styles */
+.history-section {
+  margin-top: 40px;
+  animation: riseIn 0.5s ease both;
+}
+.section-title { margin-bottom: 16px; font-size: 1.5rem; }
+.table-wrap {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.history-table { width: 100%; border-collapse: collapse; text-align: left; }
+.history-table th, .history-table td { padding: 14px 20px; border-bottom: 1px solid var(--line); }
+.history-table th { background: var(--panel-soft); color: var(--muted); font-size: 0.85rem; text-transform: uppercase; }
+.history-table tr:last-child td { border-bottom: 0; }
+.history-table strong { color: var(--accent); }
+
 .summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
