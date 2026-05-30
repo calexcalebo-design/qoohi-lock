@@ -478,8 +478,9 @@ class CafeHandler(BaseHTTPRequestHandler):
         return False
 
     def do_GET(self):
-        path = urlparse(self.path).path
-        query = parse_qs(urlparse(self.path).query)
+        parsed = urlparse(self.path)
+        path = parsed.path.rstrip("/") if len(parsed.path) > 1 else parsed.path
+        query = parse_qs(parsed.query)
 
         if path == "/":
             self.send_response(302)
@@ -542,7 +543,8 @@ class CafeHandler(BaseHTTPRequestHandler):
         self.send_text("Not found", 404, "text/plain; charset=utf-8")
 
     def do_POST(self):
-        path = urlparse(self.path).path
+        parsed = urlparse(self.path)
+        path = parsed.path.rstrip("/") if len(parsed.path) > 1 else parsed.path
         form = self.read_form()
         if path == "/login":
             if form.get("pin", "") == ADMIN_PIN:
