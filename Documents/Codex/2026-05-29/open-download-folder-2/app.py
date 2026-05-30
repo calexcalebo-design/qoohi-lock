@@ -489,6 +489,19 @@ class CafeHandler(BaseHTTPRequestHandler):
         if path == "/admin":
             self.send_text(admin_page() if self.is_admin() else login_page())
             return
+        if path == "/api/debug/db":
+            try:
+                with db() as conn:
+                    # Check connection and table existence
+                    pc_count = conn.execute("SELECT COUNT(*) as total FROM computers").fetchone()["total"]
+                    self.send_json({
+                        "status": "connected",
+                        "engine": DB_ENGINE,
+                        "computer_count": pc_count
+                    })
+            except Exception as e:
+                self.send_json({"status": "error", "message": str(e)}, 500)
+            return
         if path == "/logout":
             self.send_response(302)
             self.send_header("Location", "/admin")
