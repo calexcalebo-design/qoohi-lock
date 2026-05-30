@@ -1,10 +1,10 @@
 @echo off
-echo QOOHI customer agent
+echo QOOHI customer agent - PC 2
 echo.
 
 set SERVER_URL=https://qoohi-lock.onrender.com
-set PC_ID=1
-set PC_TOKEN=Xo0qrwjB_O60Z3XE66aq7A
+set PC_ID=2
+set PC_TOKEN=98lqBSvXdbhq-ZHQ3jW9Pg
 
 echo Server: %SERVER_URL%
 echo PC ID:   %PC_ID%

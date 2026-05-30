@@ -113,10 +113,28 @@ else:
     PL = "?"
     DB_ENGINE = "sqlite"
 
+    class _SQLiteDB:
+        """Wrapper to ensure SQLite connections are closed after use."""
+        def __init__(self):
+            self.conn = sqlite3.connect(DB_PATH)
+            self.conn.row_factory = sqlite3.Row
+
+        def execute(self, sql, params=None):
+            # Returns a cursor which supports .fetchone() and .fetchall()
+            return self.conn.execute(sql, params or ())
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            if exc_type is None:
+                self.conn.commit()
+            else:
+                self.conn.rollback()
+            self.conn.close()
+
     def db():
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        return conn
+        return _SQLiteDB()
 
     def init_db():
         with db() as conn:

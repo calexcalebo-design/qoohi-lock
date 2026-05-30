@@ -1,7 +1,7 @@
 import json
 import sys
 import tkinter as tk
-from urllib.error import URLError
+from urllib.error import URLError, HTTPError
 from urllib.request import Request, urlopen
 
 
@@ -62,6 +62,8 @@ class CustomerAgent:
             self.root.focus_force()
             return
         self.locked_mode = True
+        self.root.maxsize(self.root.winfo_screenwidth() * 2, self.root.winfo_screenheight() * 2)
+        self.root.minsize(0, 0)
         self.root.deiconify()
         self.root.state("normal")
         self.root.attributes("-fullscreen", True)
@@ -150,6 +152,13 @@ class CustomerAgent:
                 self.show_active(data)
             else:
                 self.show_locked(data)
+        except HTTPError as exc:
+            if exc.code == 404:
+                self.show_locked(error=f"PC ID {COMPUTER_ID} not found on server. Add it in Admin.")
+            elif exc.code == 403:
+                self.show_locked(error="Invalid PC Token. Get the new token from Admin.")
+            else:
+                self.show_locked(offline=True, error=f"HTTP Error {exc.code}")
         except (URLError, TimeoutError, json.JSONDecodeError, OSError) as exc:
             self.show_locked(offline=True, error=str(exc)[:120])
         self.root.after(POLL_SECONDS * 1000, self.tick)
